@@ -33,7 +33,7 @@ def pairCorrelationFunction_2D(x, y, S, rMax, dr):
     interior_indices, = where(bools1 * bools2 * bools3 * bools4)
     num_interior_particles = len(interior_indices)
 
-    if num_interior_particles < 1:
+    if not num_interior_particles:
         raise  RuntimeError ("No particles found for which a circle of radius rMax\
                 will lie entirely within a square of side length S.  Decrease rMax\
                 or increase the size of the square.")
@@ -45,23 +45,22 @@ def pairCorrelationFunction_2D(x, y, S, rMax, dr):
     numberDensity = len(x) / S**2
 
     # Compute pairwise correlation for each interior particle
-    for p in range(num_interior_particles):
-        index = interior_indices[p]
+    for p, index in enumerate(interior_indices):
         d = sqrt((x[index] - x)**2 + (y[index] - y)**2)
         d[index] = 2 * rMax
 
-        (result, bins) = histogram(d, bins=edges, normed=False)
+        result, bins = histogram(d, bins=edges, normed=False)
         g[p, :] = result/numberDensity
 
     # Average g(r) for all interior particles and compute radii
     g_average = zeros(num_increments)
     for i in range(num_increments):
-        radii[i] = (edges[i] + edges[i+1]) / 2.
         rOuter = edges[i + 1]
         rInner = edges[i]
+        radii[i] = (rInner + rOuter) / 2.
         g_average[i] = mean(g[:, i]) / (pi * (rOuter**2 - rInner**2))
 
-    return (g_average, radii, interior_indices)
+    return g_average, radii, interior_indices
 ####
 
 def pairCorrelationFunction_3D(x, y, z, S, rMax, dr):
@@ -100,7 +99,7 @@ def pairCorrelationFunction_3D(x, y, z, S, rMax, dr):
     interior_indices, = where(bools1 * bools2 * bools3 * bools4 * bools5 * bools6)
     num_interior_particles = len(interior_indices)
 
-    if num_interior_particles < 1:
+    if not num_interior_particles:
         raise  RuntimeError ("No particles found for which a sphere of radius rMax\
                 will lie entirely within a cube of side length S.  Decrease rMax\
                 or increase the size of the cube.")
@@ -112,23 +111,22 @@ def pairCorrelationFunction_3D(x, y, z, S, rMax, dr):
     numberDensity = len(x) / S**3
 
     # Compute pairwise correlation for each interior particle
-    for p in range(num_interior_particles):
-        index = interior_indices[p]
+    for p, index in enumerate(interior_indices):
         d = sqrt((x[index] - x)**2 + (y[index] - y)**2 + (z[index] - z)**2)
         d[index] = 2 * rMax
 
-        (result, bins) = histogram(d, bins=edges, normed=False)
+        result, bins = histogram(d, bins=edges, normed=False)
         g[p,:] = result / numberDensity
 
     # Average g(r) for all interior particles and compute radii
     g_average = zeros(num_increments)
     for i in range(num_increments):
-        radii[i] = (edges[i] + edges[i+1]) / 2.
         rOuter = edges[i + 1]
         rInner = edges[i]
+        radii[i] = (rOuter + rInner) / 2.
         g_average[i] = mean(g[:, i]) / (4.0 / 3.0 * pi * (rOuter**3 - rInner**3))
 
-    return (g_average, radii, interior_indices)
+    return g_average, radii, interior_indices
     # Number of particles in shell/total number of particles/volume of shell/number density
     # shell volume = 4/3*pi(r_outer**3-r_inner**3)
 ####
